@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- ============================================================
+         PROFILO DEV — console colorata, livello DEBUG
+         ============================================================ -->
+    <springProfile name="dev">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>
+                    %d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%X{requestId:-NO-REQ-ID}] [%X{userId:-anonymous}] %cyan(%logger{36}) - %msg%n
+                </pattern>
+            </encoder>
+        </appender>
+
+        <logger name="com.lipari.bank" level="DEBUG"/>
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.springframework.security" level="WARN"/>
+        <logger name="org.springframework.web" level="INFO"/>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- ============================================================
+         PROFILO PROD — file JSON rotante, livello INFO
+         ============================================================ -->
+    <springProfile name="prod">
+        <appender name="CONSOLE_PROD" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>
+                    {"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%-5level","requestId":"%X{requestId:-}","userId":"%X{userId:-}","logger":"%logger{36}","message":"%msg"}%n
+                </pattern>
+            </encoder>
+        </appender>
+
+        <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/var/log/liparibank/application.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>/var/log/liparibank/application-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>3GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>
+                    {"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%-5level","requestId":"%X{requestId:-}","userId":"%X{userId:-}","httpMethod":"%X{httpMethod:-}","requestUri":"%X{requestUri:-}","application":"liparibank","environment":"prod","logger":"%logger{36}","message":"%msg"}%n
+                </pattern>
+            </encoder>
+        </appender>
+
+        <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>512</queueSize>
+            <discardingThreshold>20</discardingThreshold>
+            <appender-ref ref="FILE_JSON"/>
+        </appender>
+
+        <logger name="com.lipari.bank" level="INFO"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.springframework" level="WARN"/>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_PROD"/>
+            <appender-ref ref="ASYNC_FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- ============================================================
+         PROFILO TEST — console minima
+         ============================================================ -->
+    <springProfile name="test">
+        <appender name="CONSOLE_TEST" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %-5level [%logger{20}] - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="com.lipari.bank" level="DEBUG"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.springframework" level="WARN"/>
+
+        <root level="WARN">
+            <appender-ref ref="CONSOLE_TEST"/>
+        </root>
+    </springProfile>
+
+</configuration>
